@@ -1,9 +1,14 @@
 [
-    {
-        "id": 101,
-        "name": "Phuong Trinh"
-    }, {
-        "id": 102,
-        "name": "Dr. Sang"
-    }
+  {
+    "id": 101,
+    "name": "Phuong Trinh"
+  },
+  {
+    "id": 102,
+    "name": "Ariana Grande"
+  },
+  {
+    "id": 103,
+    "name": "Ngoc Trinh"
+  }
 ]

@@ -1,17 +1,26 @@
 [
-    {
-        "id": 1001,
-        "name": "Phuong Trinh",
-        "avatar": "https://znews-stc.zdn.vn/static/topic/person/phuongtrinh.jpg"
-    },
-    {
-        "id": 1002,
-        "name": "Ngoc Trinh",
-        "avatar": "https://tinmoimedia.com/upload/camnhung/2020/08/17/131531-ngoc-trinh-lo-da-nhan-nheo-tm4.jpg"
-    },
-    {
-        "id": 1003,
-        "name": "Dr. Sang",
-        "avatar": "https://scontent.fvca1-2.fna.fbcdn.net/v/t1.0-9/81947450_2639096909509953_4704334140948873216_o.jpg?_nc_cat=100&_nc_sid=09cbfe&_nc_ohc=9poiE6mj8ToAX_9zPSL&_nc_ht=scontent.fvca1-2.fna&oh=492fbc1010afc655cdebd4f2684eef93&oe=5F644A38"
-    }
+  {
+    "id": 1001,
+    "name": "Phuong Trinh",
+    "avatar": "https://znews-stc.zdn.vn/static/topic/person/phuongtrinh.jpg",
+    "description": "Diễn viên"
+  },
+  {
+    "id": 1002,
+    "name": "Ngoc Trinh",
+    "avatar": "https://tinmoimedia.com/upload/camnhung/2020/08/17/131531-ngoc-trinh-lo-da-nhan-nheo-tm4.jpg",
+    "description": "Người mẫu"
+  },
+  {
+    "id": 1003,
+    "name": "Ariana Grande",
+    "avatar": "https://bazaarvietnam.vn/wp-content/uploads/2019/09/ariana-grande-kien-forever-21-00-thumb-nuoc-hoa-thank-u-next.jpg",
+    "description": "Ca Sĩ"
+  },
+  {
+    "id": 1004,
+    "name": "Thanh Quang",
+    "avatar": "https://scontent.fvca1-1.fna.fbcdn.net/v/t1.0-1/p240x240/13528850_1747437375470791_6402446801033684465_n.jpg?_nc_cat=102&_nc_sid=dbb9e7&_nc_ohc=ewGMA3fGin4AX_w496G&_nc_ht=scontent.fvca1-1.fna&_nc_tp=6&oh=3a709d8a623c11138db174d921bb52b6&oe=5F646F6E",
+    "description": "CEO & Founder at Highly Inc"
+  }
 ]
