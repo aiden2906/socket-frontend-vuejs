@@ -2,7 +2,7 @@
   <div class="message-wrapper" :class="direction">
     <div class="message">
       <div>{{content}}</div>
-      <div class="time">{{ message.created_at | fromNow }}</div>
+      <div class="time">{{ message && message.created_at | fromNow }}</div>
       <div v-if="user.id == 1004" class="seen">{{message.seen}}</div>
     </div>
     <div class="avatar" style="position: relative;">

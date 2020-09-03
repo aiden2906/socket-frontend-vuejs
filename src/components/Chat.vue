@@ -34,44 +34,20 @@
             class="menu-item"
             :class="{active: conv.id === curRoomId}"
           >
-            <div style="text-align: start; display: flex">
-              <el-avatar :size="40" :src="conv.avatar"></el-avatar>
-              <div style="margin-left: 20px; display: flex; flex-direction: column">
-                <div style="line-height: 20px">{{conv.name}}</div>
-                <span
-                  style="font-size: small; line-height: 20px; text-align: start"
-                >{{conv.lastTime | fromNow}}</span>
-              </div>
-            </div>
+            <conversation :conv="conv"></conversation>
           </el-menu-item>
         </el-menu>
       </el-aside>
-      <el-container class="container-main">
-        <el-header
-          style="display: flex; align-items: center; height: 80px; background-color: rgb(238, 241, 246)"
-        >
-          <el-avatar :size="40" :src="user.avatar"></el-avatar>
-          <div style="margin-left: 20px; font-size: large">{{user.name}}</div>
-        </el-header>
-        <el-main style="margin-bottom: 20px" id="container-message">
-          <message
-            v-for="(message, index) in activeMessages"
-            :key="`${message.user_id}-${message.chat_id}-${index}`"
-            :user="message.user"
-            :message="message.message"
-            :direction="message.direction"
-            class="mt-3"
-          ></message>
-        </el-main>
-        <div class="inp-message">
-          <el-input
-            placeholder="Enter message"
-            v-model="textMessage"
-            @keyup.enter.native="sendMessage"
-          ></el-input>
-          <i class="fa fa-paper-plane" id="icon-plane" @click="sendMessage"></i>
-        </div>
-      </el-container>
+
+      <chat-main
+        ref="chatMain"
+        :my-user-id="myUserId"
+        :room-id="curRoomId"
+        :user="user"
+        :active-messages="activeMessages"
+        @message="onMessage"
+      ></chat-main>
+
       <el-aside width="350px" style="background-color: rgb(238, 241, 246)">
         <Info :user="user"></Info>
       </el-aside>
@@ -80,28 +56,28 @@
 </template>
 
 <script>
-import Message from "./Message.vue";
 import Info from "./Info.vue";
-const messages = require("../mocks/messages.json");
-const users = require("../mocks/users.json");
-const conversations = require("../mocks/conversations.json");
+import Conversation from "./Conversation.vue";
+import ChatMain from "./ChatMain.vue";
+import { mapState } from 'vuex';
+import {messageMarkup} from '../helpers/chat-helper';
 
-const lorem =
-  "Dictum consectetur, ornare ridiculus vel eleifend volutpat a. Augue elit iaculis sagittis maecenas gravida? Sed habitasse nec luctus nostra massa accumsan adipiscing suspendisse a fusce molestie netus! Dictumst massa adipiscing sodales venenatis cras iaculis feugiat litora integer. Metus tempus blandit, urna praesent dis sociis maecenas. Morbi arcu placerat etiam mollis ac! Lacinia viverra convallis.";
+// import EventBus from './event-bus';
+
 
 export default {
   data() {
+    console.log("data");
     return {
       curRoomId: 101,
       myUserId: 1004,
-      messages: messages,
-      textMessage: "",
       search: "",
     };
   },
   components: {
-    Message,
     Info,
+    Conversation,
+    ChatMain,
   },
   updated() {
     this.$el.querySelector(
@@ -110,31 +86,16 @@ export default {
   },
   computed: {
     activeMessages() {
-      return this.messages
-        .filter((m) => m.chat_id === this.curRoomId)
-        .map((m) => {
-          m.user = users.find((u) => m.user_id == u.id);
-          m.direction = m.user.id == this.myUserId ? "right" : "left";
-          return m;
-        });
+      return this.$store.getters.activeMessages;
     },
     conversations() {
-      return conversations
-        .filter((c) => c.name.includes(this.search))
-        .map((c) => {
-          const user = users.find((u) => u.name === c.name);
-          const created_at = this.messages
-            .filter((m) => m.user_id === user.id)
-            .pop().message.created_at;
-          c.avatar = user.avatar;
-          c.lastTime = created_at;
-          return c;
-        });
+      return this.$store.getters.conversations;
     },
     user() {
       if (this.curRoomId) {
-        const conv = conversations.find((c) => c.id === this.curRoomId);
-        return users.find((u) => u.name === conv.name);
+        const conv = this.conversations.find((c) => c.id === this.curRoomId);
+        const convName = (conv && conv.name) || "__NONAME__";
+        return this.users.find((u) => u.name === convName);
       }
       return {};
     },
@@ -147,49 +108,52 @@ export default {
       }
       return 1;
     },
+
+    ...mapState(['messages', 'users'])
+
   },
   methods: {
-    sendMessage() {
-      if (this.textMessage === "") return;
-      const now = new Date();
-      const h = now.getHours();
-      const m = now.getMinutes();
-      this.messages.push({
-        user_id: this.myUserId,
-        chat_id: this.curRoomId,
-        message: {
-          content: this.textMessage,
-          created_at: Date.now(),
-          seen: `Seen ${(h > 12) ? (h-12 + ':' + m +' PM') : (h + ':' + m +' AM')}`
-        },
-      });
-      this.messageBot();
-      this.textMessage = "";
+    notifyChange(field, index) {
+      this.$set(this[field], index, this[field][index]);
     },
     openChatRoom(roomId) {
       this.curRoomId = roomId;
     },
-    messageBot() {
-      const random_boolean = Math.random() >= 0.4;
-      if (random_boolean) {
-        const now = new Date();
-        const h = now.getHours();
-        const m = now.getMinutes();
-        this.messages.push({
-          user_id: this.user.id,
-          chat_id: this.curRoomId,
-          message: {
-            content: lorem.slice(
-              ~~(Math.random() * 10),
-              ~~(Math.random() * 50 + 60)
-            ),
-            created_at: Date.now(),
-            seen: `Seen ${(h > 12) ? (h-12 + ':' + m +' PM') : (h + ':' + m +' AM')}`
-          },
-        });
-      }
+    addConversation() {},
+    onMessage(message) {
+      // this.$store.dispatch('addMessage', message);
+      console.log('xxx', message);
+    }
+  },
+  watch: {
+    messages(newVal) {
+      console.log("messages was changed", newVal);
     },
-    addConversation(){}
+    conversations(newVal) {
+      console.log("conversations was changed", newVal);
+    },
+  },
+  mounted() {
+    console.log('refs', this.$refs);
+    window.__chat = this;
+    setInterval(() => {
+      const now = new Date();
+      const h = now.getHours();
+      const m = now.getMinutes();
+        
+      const message = messageMarkup({
+        user_id: this.myUserId,
+        chat_id: this.curRoomId,
+        message: {
+          content: now.toISOString(),
+          created_at: now,
+          seen: `Seen ${(h > 12) ? (h-12 + ':' + m +' PM') : (h + ':' + m +' AM')}`
+        },
+      }, this.users, this.myUserId);
+      // this.$refs['chatMain'].$emit('addMessage', message);
+      this.$root.$emit('addMessage', message);
+      this.$root.$emit('setLastMessage', message);
+    }, 5000)
   },
 };
 </script>
@@ -234,7 +198,7 @@ export default {
   top: 13px;
   right: 13px;
 }
-.active{
+.active {
   background: white;
   border-radius: 10px;
 }
