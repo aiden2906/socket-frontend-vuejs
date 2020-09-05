@@ -2,7 +2,7 @@
   <div class="message-wrapper" :class="direction">
     <div class="message">
       <div>{{content}}</div>
-      <div class="time">{{ message && message.created_at | fromNow }}</div>
+      <div class="time">{{ message && message.createdAt | fromNow }}</div>
       <div v-if="user.id == 1004" class="seen">{{message.seen}}</div>
     </div>
     <div class="avatar" style="position: relative;">
@@ -17,17 +17,12 @@ export default {
   props: {
     user: Object,
     message: Object,
-    direction: {
-      type: String,
-      default: () => "left",
-    },
   },
   data() {
     return {
-      avatarUrl:
-        (this.user && this.user.avatar) ||
-        "https://nhacchuonghinhnen.com/wp-content/uploads/2020/03/bo-anh-hot-trends-avatar-giau-mat-facebook-1.jpeg",
+      avatarUrl: this.message.userId === this.$store.state.myUser.id ? this.$store.state.myUser.avatar : this.$store.state.user.avatar,
       content: (this.message && this.message.content) || "N/A",
+      direction: this.message.userId === this.$store.state.myUser.id ? 'right' : 'left'
     };
   },
 };

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-container style="height: 731px; border: 1px solid #eee">
+    <el-container style="height: 945px; border: 1px solid #eee">
       <el-aside width="350px" style="background-color: rgb(238, 241, 246); padding: 20px 30px">
         <el-menu style="border-radius: 10px">
           <el-menu-item style="padding: 0; border-radius: 10px" @click="addConversation">
@@ -32,7 +32,7 @@
             :index="`1-${index}`"
             @click="()=>openChatRoom(conv.id)"
             class="menu-item"
-            :class="{active: conv.id === curRoomId}"
+            :class="{active: conv.id === curConvId}"
           >
             <conversation :conv="conv"></conversation>
           </el-menu-item>
@@ -42,9 +42,8 @@
       <chat-main
         ref="chatMain"
         :my-user-id="myUserId"
-        :room-id="curRoomId"
-        :user="user"
-        :active-messages="activeMessages"
+        :room-id="curConvId"
+        :messages="messages"
         @message="onMessage"
       ></chat-main>
 
@@ -56,22 +55,18 @@
 </template>
 
 <script>
-import Info from "./Info.vue";
-import Conversation from "./Conversation.vue";
-import ChatMain from "./ChatMain.vue";
-import { mapState } from 'vuex';
-import {messageMarkup} from '../helpers/chat-helper';
-
-// import EventBus from './event-bus';
-
+import Info from "../components/Info.vue";
+import Conversation from "../components/Conversation.vue";
+import ChatMain from "../components/ChatMain.vue";
 
 export default {
   data() {
-    console.log("data");
     return {
-      curRoomId: 101,
-      myUserId: 1004,
+      curConvId: "",
+      myUserId: "",
       search: "",
+      socket: null,
+      user: {},
     };
   },
   components: {
@@ -85,75 +80,43 @@ export default {
     ).scrollTop = this.$el.querySelector("#container-message").scrollHeight;
   },
   computed: {
-    activeMessages() {
-      return this.$store.getters.activeMessages;
+    messages() {
+      return this.$store.state.messages;
     },
     conversations() {
-      return this.$store.getters.conversations;
+      return this.$store.state.conversations;
     },
-    user() {
-      if (this.curRoomId) {
-        const conv = this.conversations.find((c) => c.id === this.curRoomId);
-        const convName = (conv && conv.name) || "__NONAME__";
-        return this.users.find((u) => u.name === convName);
-      }
-      return {};
-    },
-    lastTime() {
-      if (this.user) {
-        const created_at = this.activeMessages
-          .filter((m) => m.user_id === this.user.id)
-          .pop().message.created_at;
-        return created_at;
-      }
-      return 1;
-    },
-
-    ...mapState(['messages', 'users'])
-
   },
   methods: {
     notifyChange(field, index) {
       this.$set(this[field], index, this[field][index]);
     },
     openChatRoom(roomId) {
-      this.curRoomId = roomId;
+      this.curConvId = roomId;
     },
     addConversation() {},
     onMessage(message) {
-      // this.$store.dispatch('addMessage', message);
-      console.log('xxx', message);
-    }
-  },
-  watch: {
-    messages(newVal) {
-      console.log("messages was changed", newVal);
-    },
-    conversations(newVal) {
-      console.log("conversations was changed", newVal);
+      console.log("xxx", message);
     },
   },
-  mounted() {
-    console.log('refs', this.$refs);
-    window.__chat = this;
-    setInterval(() => {
-      const now = new Date();
-      const h = now.getHours();
-      const m = now.getMinutes();
-        
-      const message = messageMarkup({
-        user_id: this.myUserId,
-        chat_id: this.curRoomId,
-        message: {
-          content: now.toISOString(),
-          created_at: now,
-          seen: `Seen ${(h > 12) ? (h-12 + ':' + m +' PM') : (h + ':' + m +' AM')}`
-        },
-      }, this.users, this.myUserId);
-      // this.$refs['chatMain'].$emit('addMessage', message);
-      this.$root.$emit('addMessage', message);
-      this.$root.$emit('setLastMessage', message);
-    }, 5000)
+  created() {
+    // eslint-disable-next-line no-undef
+    this.socket = io(`http://localhost:3456`);
+    this.socket.emit("login", this.$store.state.myUser.username);
+    this.socket.on("message", (message) => {
+      this.$store.commit("LISTEN_MESSAGE", message);
+    });
+  },
+  async mounted() {
+    await this.$store.dispatch("fetchUsers");
+    await this.$store.dispatch("fetchConversations");
+    await this.$store.dispatch(
+      "fetchConversationById",
+      this.$store.state.curConvId
+    );
+    this.myUserId = this.$store.state.myUser.id;
+    this.curConvId = this.$store.state.curConvId;
+    this.user = this.$store.state.user;
   },
 };
 </script>

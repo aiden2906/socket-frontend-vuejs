@@ -1,19 +1,15 @@
 <template>
   <div id="app">
-    <Chat />
+    <router-view />
   </div>
 </template>
 
 <script>
-import Chat from "./components/Chat.vue";
 import store from './store/index';
 
 export default {
   name: "App",
   store,
-  components: {
-    Chat,
-  },
 };
 </script>
 
