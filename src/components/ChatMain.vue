@@ -33,11 +33,12 @@ export default {
   data() {
     return {
       textMessage: "",
-      user: {},
     };
   },
-  mounted() {
-    this.user = this.$store.state.user;
+  computed:{
+    user(){
+      return this.$store.state.user;
+    }
   },
   methods: {
     sendMessage() {

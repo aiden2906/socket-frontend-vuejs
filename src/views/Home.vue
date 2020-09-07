@@ -1,9 +1,23 @@
 <template>
   <div>
+    <el-dialog title="Create New Conversation" :visible.sync="dialogVisible" width="30%">
+      <el-form ref="form" :model="form" label-width="70px">
+        <el-form-item label="Receiver">
+          <el-input v-model="form.username2"></el-input>
+        </el-form-item>
+        <el-form-item label="Content">
+          <el-input v-model="form.content"></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisible = false">Cancel</el-button>
+        <el-button type="primary" @click="createConversation">Confirm</el-button>
+      </span>
+    </el-dialog>
     <el-container style="height: 945px; border: 1px solid #eee">
       <el-aside width="350px" style="background-color: rgb(238, 241, 246); padding: 20px 30px">
         <el-menu style="border-radius: 10px">
-          <el-menu-item style="padding: 0; border-radius: 10px" @click="addConversation">
+          <el-menu-item style="padding: 0; border-radius: 10px" @click="openDialog">
             <div style="text-align: start; display: flex">
               <div
                 style="width: 50px; display: flex; justify-content: center; align-items: center; border-right: 1px solid #d9dcde"
@@ -39,13 +53,7 @@
         </el-menu>
       </el-aside>
 
-      <chat-main
-        ref="chatMain"
-        :my-user-id="myUserId"
-        :room-id="curConvId"
-        :messages="messages"
-        @message="onMessage"
-      ></chat-main>
+      <chat-main ref="chatMain" :my-user-id="myUserId" :room-id="curConvId" :messages="messages"></chat-main>
 
       <el-aside width="350px" style="background-color: rgb(238, 241, 246)">
         <Info :user="user"></Info>
@@ -66,7 +74,11 @@ export default {
       myUserId: "",
       search: "",
       socket: null,
-      user: {},
+      dialogVisible: false,
+      form: {
+        username2: "",
+        content: "",
+      },
     };
   },
   components: {
@@ -86,6 +98,9 @@ export default {
     conversations() {
       return this.$store.state.conversations;
     },
+    user(){
+      return this.$store.state.user;
+    }
   },
   methods: {
     notifyChange(field, index) {
@@ -94,29 +109,35 @@ export default {
     openChatRoom(roomId) {
       this.curConvId = roomId;
     },
-    addConversation() {},
-    onMessage(message) {
-      console.log("xxx", message);
+    openDialog() {
+      this.dialogVisible = true;
+    },
+    createConversation() {
+      this.$store.dispatch('createConversation', this.form);
     },
   },
   created() {
     // eslint-disable-next-line no-undef
-    this.socket = io(`http://localhost:3456`);
+    this.socket = io(this.$store.state.BASE_URL);
     this.socket.emit("login", this.$store.state.myUser.username);
     this.socket.on("message", (message) => {
+      console.log('listen message : ', message);
       this.$store.commit("LISTEN_MESSAGE", message);
     });
   },
   async mounted() {
+    console.log('1')
     await this.$store.dispatch("fetchUsers");
+    console.log('2')
     await this.$store.dispatch("fetchConversations");
+    console.log('3: ', this.$store.state.conversations[this.$store.state.conversations.length-1].id)
     await this.$store.dispatch(
       "fetchConversationById",
-      this.$store.state.curConvId
+      this.$store.state.conversations[this.$store.state.conversations.length-1].id
     );
+    console.log('4')
     this.myUserId = this.$store.state.myUser.id;
     this.curConvId = this.$store.state.curConvId;
-    this.user = this.$store.state.user;
   },
 };
 </script>
