@@ -55,6 +55,14 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    async listenMessage(ctx, payload){
+      const {conversationId} = payload;
+      const conv = ctx.state.conversations.find(c=> c.id === conversationId);
+      if (!conv){
+        await ctx.dispatch('fetchConversations');
+      }
+      ctx.commit('LISTEN_MESSAGE', payload);
+    },
     fetchConversations(ctx) {
       return new Promise((resolve, reject) => {
         client

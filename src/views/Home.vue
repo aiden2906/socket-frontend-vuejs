@@ -98,9 +98,9 @@ export default {
     conversations() {
       return this.$store.state.conversations;
     },
-    user(){
+    user() {
       return this.$store.state.user;
-    }
+    },
   },
   methods: {
     notifyChange(field, index) {
@@ -113,7 +113,7 @@ export default {
       this.dialogVisible = true;
     },
     createConversation() {
-      this.$store.dispatch('createConversation', this.form);
+      this.$store.dispatch("createConversation", this.form);
     },
   },
   created() {
@@ -121,21 +121,20 @@ export default {
     this.socket = io(this.$store.state.BASE_URL);
     this.socket.emit("login", this.$store.state.myUser.username);
     this.socket.on("message", (message) => {
-      console.log('listen message : ', message);
-      this.$store.commit("LISTEN_MESSAGE", message);
+      this.$store.dispatch("listenMessage", message);
     });
   },
   async mounted() {
-    console.log('1')
     await this.$store.dispatch("fetchUsers");
-    console.log('2')
     await this.$store.dispatch("fetchConversations");
-    console.log('3: ', this.$store.state.conversations[this.$store.state.conversations.length-1].id)
-    await this.$store.dispatch(
-      "fetchConversationById",
-      this.$store.state.conversations[this.$store.state.conversations.length-1].id
-    );
-    console.log('4')
+    if (this.$store.state.conversations.length !== 0) {
+      await this.$store.dispatch(
+        "fetchConversationById",
+        this.$store.state.conversations[
+          this.$store.state.conversations.length - 1
+        ].id
+      );
+    }
     this.myUserId = this.$store.state.myUser.id;
     this.curConvId = this.$store.state.curConvId;
   },
